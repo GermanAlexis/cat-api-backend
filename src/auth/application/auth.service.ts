@@ -1,17 +1,30 @@
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  OnModuleInit,
+} from '@nestjs/common';
 
 import { LoginDto } from '../infrastucture/dto/login-auth.dto';
 import { RegisterDto } from '../infrastucture/dto/register-auth.dto';
 import { JwtCustomService } from './jwt.service';
 
+import { PrismaClient } from '@prisma/client';
+
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
-export class AuthService {
-  constructor(
-    private readonly jwtCustomService: JwtCustomService,
-    // private readonly userService: UserService, TODO? MAke service
-  ) {}
+export class AuthService extends PrismaClient implements OnModuleInit {
+  private logger = new Logger('AuthService');
+
+  constructor(private readonly jwtCustomService: JwtCustomService) {
+    super();
+  }
+  onModuleInit() {
+    this.$connect();
+    this.logger.log('Database Connected');
+  }
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
@@ -32,7 +45,7 @@ export class AuthService {
 
     delete user.password;
     const token = await this.jwtCustomService.signIn(user);
-    return { user, token };
+    return { token };
   }
 
   async register(registerDto: RegisterDto) {
@@ -45,13 +58,21 @@ export class AuthService {
       });
 
     const passHashed = await this.hashPass(registerDto.password);
-    const newUser = { password: '123' }; // TODO? Connect with user service create()
+    const newUser = await this.createUser({
+      email,
+      name,
+      password: passHashed,
+    });
     delete newUser.password;
-    return { newUser, passHashed, name };
+    return { newUser };
   }
 
   private async findUserByEmail(email: string) {
-    return { email, password: '123', name: 'German' };
+    return this.user.findUnique({ where: { email } });
+  }
+
+  private async createUser(register: RegisterDto) {
+    return this.user.create({ data: register });
   }
 
   async verifyToken(token: string) {
