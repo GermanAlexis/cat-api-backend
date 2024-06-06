@@ -5,7 +5,7 @@ export class SwaggerConfig {
   static setup(app: INestApplication): void {
     const options = new DocumentBuilder()
       .setTitle('API Documentation')
-      .setDescription('API documentation for PLAYGRREEN-SPORT')
+      .setDescription('API documentation for CAT-API')
       .setVersion('1.0')
       .addBearerAuth({
         type: 'http',

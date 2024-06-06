@@ -15,6 +15,8 @@ async function bootstrap() {
     }),
   );
 
+  app.enableCors()
+
   await SwaggerConfig.setup(app);
 
   await app.listen(envs.ports);

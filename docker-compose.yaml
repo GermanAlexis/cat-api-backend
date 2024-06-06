@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  mongo:
+    image: mongo
+    container_name: mongodb
+    volumes:
+      - database_data:/data/db
+    ports:
+      - "27017:27017"
+
+  cat-api:
+    build: .
+    ports:
+      - ${PORT}:${PORT}
+    volumes:
+      - ./src:/usr/src/app/src
+    command: pnpm start:dev
+    environment:
+        - PORT=${PORT}
+        - JWT_SECRET=${JWT_SECRET}
+        - DATABASE_URL=${DATABASE_URL}
+        - API_KEY=${API_KEY}
+        - API_CAT_URL=${API_CAT_URL}
+
+volumes:
+  database_data:
